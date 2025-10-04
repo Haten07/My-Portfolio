@@ -406,6 +406,8 @@ body::before {
   line-height: 1.6;
   color: gray;
   font-size: 0.8rem;
+  margin-left: 40px;
+  margin-right: 40px;
 }
 
 .project-description {
@@ -567,3 +569,4 @@ body::before {
   .mobile-menu ul li a:hover {
     color: #00b2ff;
   }
+
