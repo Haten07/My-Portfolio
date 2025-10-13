@@ -435,6 +435,31 @@ body::before {
  flex-wrap: wrap;
 }
 
+.project-images-macro {
+  justify-content: center;
+  gap: 15px;
+  margin: 10px;
+}
+
+.project-images-macro img {
+  max-width: 100%;
+  width: 150px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+  transition: transform 0.3s ease;
+}
+
+.project-images-macro img:hover {
+  transform: scale(1.05);
+}
+
+.macro-images {
+ justify-content: center;
+ display: flex;
+ flex-wrap: wrap;
+}
+
 .image-description {
   max-width: 700px;
   line-height: 1.6;
