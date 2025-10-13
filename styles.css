@@ -443,7 +443,7 @@ body::before {
 
 .project-images-macro img {
   max-width: 100%;
-  width: 150px;
+  width: 170px;
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.2);
   box-shadow: 0 0 12px rgba(0,0,0,0.4);
@@ -574,6 +574,14 @@ body::before {
 @media screen and (max-width: 768px) {
   .left-menu {
     display: none; /* hide left menu on mobile */
+  }
+
+  .box-wide {
+    height: auto;
+  }
+
+  .right-icons {
+    right: 30px;
   }
 
   .hamburger {
