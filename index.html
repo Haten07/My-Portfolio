@@ -139,6 +139,7 @@
 
   
 
+  
 // ------------------- Overlay logic -------------------
 function attachOverlayEvents() {
   const boxes = content.querySelectorAll('.box');
@@ -172,12 +173,14 @@ function attachOverlayEvents() {
 }
 
 // ------------------- Close overlay -------------------
-closeOverlayBtn.addEventListener('click', () => {
+function closeOverlay() {
   overlay.classList.remove('active');
   overlayContent.innerHTML = '';
   document.body.style.overflow = '';
-  history.pushState({}, '', window.location.pathname); // ✅ remove #hash from URL
-});
+  history.pushState({}, '', window.location.pathname); // ✅ remove hash from URL
+}
+
+closeOverlayBtn.addEventListener('click', closeOverlay);
 
 // ------------------- Auto-open overlay if URL has hash -------------------
 window.addEventListener('load', async () => {
@@ -195,6 +198,27 @@ window.addEventListener('load', async () => {
     }
   }
 });
+
+// ------------------- Handle browser back button -------------------
+window.addEventListener('popstate', (event) => {
+  if (event.state && event.state.overlay) {
+    // If overlay state exists, reopen it
+    fetch(event.state.file)
+      .then(res => res.text())
+      .then(html => {
+        overlayContent.innerHTML = html;
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      })
+      .catch(err => console.error('Failed to reload overlay on back:', err));
+  } else {
+    // If no overlay state, close overlay
+    overlay.classList.remove('active');
+    overlayContent.innerHTML = '';
+    document.body.style.overflow = '';
+  }
+});
+
 
 
 
