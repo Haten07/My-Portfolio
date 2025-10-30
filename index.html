@@ -86,13 +86,14 @@
       const response = await fetch(url);
       const html = await response.text();
       content.innerHTML = html;
-      attachOverlayEvents();
 
-      // ✅ Update URL for bookmarking/sharing
       if (pushState) {
         const cleanUrl = url.replace('.html', '');
         history.pushState({ page: url }, '', `?page=${cleanUrl}`);
       }
+
+      attachOverlayEvents();
+
     } catch (err) {
       console.error('Failed to load page:', err);
       content.innerHTML = '<p style="padding:20px;">Error loading page.</p>';
@@ -136,31 +137,66 @@
     }
   });
 
-  // ------------------- Overlay logic -------------------
-  function attachOverlayEvents() {
-    const boxes = content.querySelectorAll('.box');
+  
 
-    boxes.forEach(box => {
-      if (box.dataset.overlayAttached === 'true') return;
-      box.dataset.overlayAttached = 'true';
+// ------------------- Overlay logic -------------------
+function attachOverlayEvents() {
+  const boxes = content.querySelectorAll('.box');
 
-      box.addEventListener('click', async (e) => {
-        const projectFile = box.getAttribute('href');
-        if (!projectFile) return;
+  boxes.forEach(box => {
+    if (box.dataset.overlayAttached === 'true') return;
+    box.dataset.overlayAttached = 'true';
 
-        e.preventDefault();
-        try {
-          const res = await fetch(projectFile);
-          const html = await res.text();
-          overlayContent.innerHTML = html;
-          overlay.classList.add('active');
-          document.body.style.overflow = 'hidden';
-        } catch (err) {
-          console.error('Failed to load project:', err);
-        }
-      });
+    box.addEventListener('click', async (e) => {
+      const projectFile = box.getAttribute('href');
+      if (!projectFile) return;
+
+      e.preventDefault();
+
+      try {
+        const res = await fetch(projectFile);
+        const html = await res.text();
+        overlayContent.innerHTML = html;
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // ✅ Update the browser URL to reflect the opened project
+        const relativePath = projectFile.replace(/^contents\//, '');
+        history.pushState({ overlay: true, file: projectFile }, '', `#${relativePath}`);
+
+      } catch (err) {
+        console.error('Failed to load project:', err);
+      }
     });
+  });
+}
+
+// ------------------- Close overlay -------------------
+closeOverlayBtn.addEventListener('click', () => {
+  overlay.classList.remove('active');
+  overlayContent.innerHTML = '';
+  document.body.style.overflow = '';
+  history.pushState({}, '', window.location.pathname); // ✅ remove #hash from URL
+});
+
+// ------------------- Auto-open overlay if URL has hash -------------------
+window.addEventListener('load', async () => {
+  const hash = window.location.hash.slice(1); // remove '#'
+  if (hash && hash.startsWith('projects/')) {
+    const projectFile = `contents/${hash}`;
+    try {
+      const res = await fetch(projectFile);
+      const html = await res.text();
+      overlayContent.innerHTML = html;
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    } catch (err) {
+      console.error('Failed to auto-load project:', err);
+    }
   }
+});
+
+
 
   // ------------------- Hamburger -------------------
   const hamburger = document.getElementById('hamburger');
