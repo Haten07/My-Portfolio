@@ -63,82 +63,92 @@
   
   
 
-  <script>
-    // (keep your existing consts)
-    const content = document.getElementById('content');
-    const overlay = document.getElementById('overlay');
-    const overlayContent = document.getElementById('overlay-content');
-    const closeOverlayBtn = document.getElementById('close-overlay');
+<script>
+  // (keep your existing consts)
+  const content = document.getElementById('content');
+  const overlay = document.getElementById('overlay');
+  const overlayContent = document.getElementById('overlay-content');
+  const closeOverlayBtn = document.getElementById('close-overlay');
 
-    // single close handler (attach once)
-    closeOverlayBtn.addEventListener('click', () => {
-      overlay.classList.remove('active');
-      overlayContent.innerHTML = '';
-      document.body.style.overflow = '';
-    });
-    
-    // Select links from both desktop and mobile menus
-    const links = document.querySelectorAll('.left-menu a, .mobile-menu a');
+  // single close handler (attach once)
+  closeOverlayBtn.addEventListener('click', () => {
+    overlay.classList.remove('active');
+    overlayContent.innerHTML = '';
+    document.body.style.overflow = '';
+  });
+  
+  // Select links from both desktop and mobile menus
+  const links = document.querySelectorAll('.left-menu a, .mobile-menu a');
 
-    // Function to load page content dynamically
-    async function loadPage(url) {
+  // ------------------- Load Page -------------------
+  async function loadPage(url, pushState = true) {
+    try {
       const response = await fetch(url);
       const html = await response.text();
       content.innerHTML = html;
-
-      // Attach overlay events after content is loaded
       attachOverlayEvents();
+
+      // ✅ Update URL for bookmarking/sharing
+      if (pushState) {
+        const cleanUrl = url.replace('.html', '');
+        history.pushState({ page: url }, '', `?page=${cleanUrl}`);
+      }
+    } catch (err) {
+      console.error('Failed to load page:', err);
+      content.innerHTML = '<p style="padding:20px;">Error loading page.</p>';
     }
+  }
 
-    // Default: load home.html
-    loadPage('contents/home.html');
+  // ------------------- Default Page -------------------
+  const params = new URLSearchParams(window.location.search);
+  const pageParam = params.get('page');
+  if (pageParam) {
+    const target = pageParam.endsWith('.html') ? pageParam : `${pageParam}.html`;
+    loadPage(target, false);
+  } else {
+    loadPage('contents/home.html', false);
+  }
 
-    // Handle clicks on all menu links
-    links.forEach(link => {
-      link.addEventListener('click', e => {
-        e.preventDefault();
+  // ------------------- Handle Clicks -------------------
+  links.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
 
-        // Remove active from all links and add to clicked link
-        links.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
+      links.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
 
-        // Load the content dynamically
-        loadPage(link.getAttribute('href'));
+      loadPage(link.getAttribute('href'));
 
-        // If mobile menu, hide it after clicking
-        const mobileMenu = document.querySelector('.mobile-menu');
-        if (mobileMenu && window.innerWidth <= 768) {
-          mobileMenu.style.display = 'none';
-          document.getElementById('hamburger').classList.remove('open');
-        }
-      });
+      const mobileMenu = document.querySelector('.mobile-menu');
+      if (mobileMenu && window.innerWidth <= 768) {
+        mobileMenu.style.display = 'none';
+        document.getElementById('hamburger').classList.remove('open');
+      }
     });
+  });
 
+  // ------------------- Handle Back/Forward -------------------
+  window.addEventListener('popstate', e => {
+    if (e.state && e.state.page) {
+      loadPage(e.state.page, false);
+    } else {
+      loadPage('contents/home.html', false);
+    }
+  });
 
-    // ------------------- Overlay logic -------------------
-    function attachOverlayEvents() {
+  // ------------------- Overlay logic -------------------
+  function attachOverlayEvents() {
     const boxes = content.querySelectorAll('.box');
 
     boxes.forEach(box => {
-      // avoid attaching multiple listeners if this function runs repeatedly
       if (box.dataset.overlayAttached === 'true') return;
       box.dataset.overlayAttached = 'true';
 
       box.addEventListener('click', async (e) => {
-        // if this .box element itself has an href (i.e. it's an <a href="...">)
-        // then we treat it as a project opener. Otherwise we let clicks
-        // (e.g. on inner <a> links) behave normally.
         const projectFile = box.getAttribute('href');
+        if (!projectFile) return;
 
-        if (!projectFile) {
-          // No href on the box itself -> do nothing special:
-          // allow the default behavior of child links to work.
-          return;
-        }
-
-        // Box is a link to a project -> prevent navigation and load overlay.
         e.preventDefault();
-
         try {
           const res = await fetch(projectFile);
           const html = await res.text();
@@ -152,17 +162,16 @@
     });
   }
 
-    // ------------------- Hamburger -------------------
-    const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.querySelector('.mobile-menu');
+  // ------------------- Hamburger -------------------
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.querySelector('.mobile-menu');
 
-    hamburger.addEventListener('click', () => {
-      mobileMenu.style.display = mobileMenu.style.display === 'block' ? 'none' : 'block';
-      hamburger.classList.toggle('open');
-    });
+  hamburger.addEventListener('click', () => {
+    mobileMenu.style.display = mobileMenu.style.display === 'block' ? 'none' : 'block';
+    hamburger.classList.toggle('open');
+  });
+</script>
 
-
-  </script>
 
   
 
